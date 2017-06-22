@@ -270,6 +270,8 @@ public class Board extends JPanel implements Runnable {
 		}
 		
 			msInterval = (15000l / footprint.size());
+			if(msInterval < 10l)
+				msInterval = 10l;
 			if(msInterval > 250l)
 				msInterval = 250l;
 		
@@ -318,7 +320,9 @@ public class Board extends JPanel implements Runnable {
 			LinkedList<Point> sol = solutions.get(selectedSolutionIndex);
 			
 			if(sol.size() > 0) {
-				msInterval = (5000l / sol.size());
+				msInterval = (10000l / sol.size());
+				if(msInterval < 50l)
+					msInterval = 50l;
 				if(msInterval > 250l)
 					msInterval = 250l;
 				
