@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Toolkit;
 import java.io.File;
 import java.io.IOException;
 
@@ -50,6 +51,9 @@ public class MainFrame extends JFrame {
 		
 		crosshairCursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
 		handCursor = new Cursor(Cursor.HAND_CURSOR);
+		
+		setSize(Toolkit.getDefaultToolkit().getScreenSize());
+		setPreferredSize(Toolkit.getDefaultToolkit().getScreenSize());
 		
 		initGUI();
 	}

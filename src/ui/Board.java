@@ -7,6 +7,7 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -14,6 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Vector;
 
+import javax.imageio.ImageIO;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
@@ -120,6 +122,30 @@ public class Board extends JPanel implements Runnable {
 		}
 	}
 	
+	public boolean loadBMP(File file) {
+		try {
+			BufferedImage image = ImageIO.read(file);
+			int width = image.getWidth();
+			int height = image.getHeight();
+			if(image.getType() == BufferedImage.TYPE_BYTE_BINARY && width <= 64 && height <= 64) {
+				for(int i = 0; i < width; i++) {
+					for(int j = 0; j < height; j++) {
+						if(image.getRGB(i, j) == Color.BLACK.getRGB())
+							board[j][i].setColor(Color.BLACK);
+						else
+							board[j][i].setColor(Color.WHITE);
+					}
+				}
+				repaint();
+			}
+				else
+					return false;
+		} catch (IOException e) {
+			return false;
+		}
+		return true;
+	}
+	
 	/**Salva o labirinto desenhado no quadro em um arquivo.
 	 * @param filePath O caminho do arquivo.
 	 * @return true caso a operação ocorra com sucesso, false caso contrário.
@@ -209,22 +235,17 @@ public class Board extends JPanel implements Runnable {
 	 * 3: número de saídas inválido
 	 */
 	public int isValidMaze() {
-		int entrances = 0, exits = 0;
+		int entrances = 0;
 		
 		for(int i = 0; i < 64; i++) {
 			for(int j = 0; j < 64; j++) {
 				if(board[i][j].getColor() == Color.RED)
 					entrances++;
-				else if(board[i][j].getColor() == Color.GREEN)
-					exits++;
 			}
 		}
 		
 		if(entrances != 1)
 			return 2;
-		
-		if(exits < 1)
-			return 3;
 		
 		return 1;
 	}
@@ -279,8 +300,12 @@ public class Board extends JPanel implements Runnable {
 			if(p != null) {
 				if(board[p.x][p.y].getColor() == Color.BLUE)
 					board[p.x][p.y].setColor(Color.GRAY);
-				else
+				else if(board[p.x][p.y].getColor() == Color.WHITE)
 					board[p.x][p.y].setColor(Color.BLUE);
+				else if(board[p.x][p.y].getColor() == Color.GREEN)
+					board[p.x][p.y].setColor(Color.CYAN);
+				else if(board[p.x][p.y].getColor() == Color.CYAN)
+					board[p.x][p.y].setColor(Color.DARK_GRAY);
 				board[p.x][p.y].repaint();
 				Toolkit.getDefaultToolkit().sync();
 				try {
@@ -303,45 +328,44 @@ public class Board extends JPanel implements Runnable {
 				options.add(Integer.toString(i + 1));
 			}
 			Object[] optionsStrings = options.toArray();
-			String result = (String) JOptionPane.showInputDialog(this,
+			String result;
+			
+			while((result = (String) JOptionPane.showInputDialog(this,
 				"Select the solution you want to run:",
 				"Options",
 				JOptionPane.QUESTION_MESSAGE,
 				null,
 				optionsStrings,
 				optionsStrings[0]
-				);
-			try {
-				selectedSolutionIndex = Integer.parseInt(result) - 1;
-			} catch(NumberFormatException nfe) {
-				return;
-			}
-			
-			LinkedList<Point> sol = solutions.get(selectedSolutionIndex);
-			
-			if(sol.size() > 0) {
-				msInterval = (10000l / sol.size());
-				if(msInterval < 50l)
-					msInterval = 50l;
-				if(msInterval > 250l)
-					msInterval = 250l;
-				
-				for(Point p : sol) {
-					board[p.x][p.y].setColor(Color.BLUE);
-					board[p.x][p.y].repaint();
-					Toolkit.getDefaultToolkit().sync();
-					try {
-						Thread.sleep(msInterval);
-					} catch(InterruptedException ie) {}
+				)) != null) {
+				try {
+					selectedSolutionIndex = Integer.parseInt(result) - 1;
+				} catch(NumberFormatException nfe) {
+					return;
 				}
 				
+				LinkedList<Point> sol = solutions.get(selectedSolutionIndex);
+				
+				if(sol.size() > 0) {
+					msInterval = (10000l / sol.size());
+					if(msInterval < 50l)
+						msInterval = 50l;
+					if(msInterval > 250l)
+						msInterval = 250l;
+					
+					for(Point p : sol) {
+						board[p.x][p.y].setColor(Color.BLUE);
+						board[p.x][p.y].repaint();
+						Toolkit.getDefaultToolkit().sync();
+						try {
+							Thread.sleep(msInterval);
+						} catch(InterruptedException ie) {}
+					}
+				}
+					
 				JOptionPane.showMessageDialog(this, "A execução foi concluída.", "Fim", JOptionPane.INFORMATION_MESSAGE);
 				reset();
 			}
-			else {
-				JOptionPane.showMessageDialog(this, "Não foi possível executar a solução.", "Erro", JOptionPane.ERROR_MESSAGE);
-			}
-			return;
 		}
 		else {
 			JOptionPane.showMessageDialog(this, "Não foi encontrada nenhuma solução para o labirinto.", "Erro", JOptionPane.ERROR_MESSAGE);

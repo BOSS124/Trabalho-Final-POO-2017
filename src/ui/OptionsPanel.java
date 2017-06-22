@@ -25,6 +25,10 @@ public class OptionsPanel extends JPanel {
 	private JButton runBtn;
 	private JFileChooser fileChooser;
 	
+	private FileNameExtensionFilter labFilter;
+	private FileNameExtensionFilter bmpFilter;
+	private FileNameExtensionFilter	allValidFilter;
+	
 	/**Construtor da classe OptionsPanel.
 	 * 
 	 */
@@ -39,18 +43,33 @@ public class OptionsPanel extends JPanel {
 		
 		fileChooser = new JFileChooser();
 		fileChooser.setAcceptAllFileFilterUsed(false);
-		fileChooser.setFileFilter(new FileNameExtensionFilter("LAB files", "lab"));
+		
+		labFilter = new FileNameExtensionFilter("LAB Files", "lab");
+		bmpFilter = new FileNameExtensionFilter("BMP Files", "bmp");
+		allValidFilter = new FileNameExtensionFilter("LAB Files or BMP FILES", "lab", "bmp");
 		
 		
 		loadBoardBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				fileChooser.setDialogTitle("Load labyrinth...");
 				fileChooser.setDialogType(JFileChooser. OPEN_DIALOG);
+				fileChooser.resetChoosableFileFilters();
+				fileChooser.addChoosableFileFilter(labFilter);
+				fileChooser.addChoosableFileFilter(bmpFilter);
+				fileChooser.addChoosableFileFilter(allValidFilter);
 				
 				int result = fileChooser.showOpenDialog(MainFrame.optionsPanel);	
 				if(result == JFileChooser.APPROVE_OPTION) {
+					String fileName = fileChooser.getSelectedFile().getName();
 					MainFrame.board.clear();
-					if(!MainFrame.board.loadBoardFromFile(fileChooser.getSelectedFile())) {
+					boolean operationResult = false;
+					
+					if(fileName.endsWith(".lab"))
+						operationResult = MainFrame.board.loadBoardFromFile(fileChooser.getSelectedFile());
+					else if(fileName.endsWith(".bmp"))
+						operationResult = MainFrame.board.loadBMP(fileChooser.getSelectedFile());
+					
+					if(!operationResult) {
 						JOptionPane.showMessageDialog(null, "Não foi possível carregar o arquivo!",
 								"Erro", JOptionPane.ERROR_MESSAGE);
 					}
@@ -62,6 +81,8 @@ public class OptionsPanel extends JPanel {
 			public void actionPerformed(ActionEvent e) {
 				fileChooser.setDialogTitle("Save labyrinth...");
 				fileChooser.setDialogType(JFileChooser. SAVE_DIALOG);
+				fileChooser.resetChoosableFileFilters();
+				fileChooser.addChoosableFileFilter(labFilter);
 				
 				int result = fileChooser.showSaveDialog(MainFrame.optionsPanel);
 				if(result == JFileChooser.APPROVE_OPTION) {
@@ -91,12 +112,6 @@ public class OptionsPanel extends JPanel {
 				}
 				else if(result == 2) {
 					JOptionPane.showMessageDialog(null, "O labirinto deve ter exatamente 1 entrada!",
-						"Labirinto Inválido",
-						JOptionPane.ERROR_MESSAGE
-					);
-				}
-				else if(result == 3) {
-					JOptionPane.showMessageDialog(null, "O labirinto deve ter pelo menos 1 saída!",
 						"Labirinto Inválido",
 						JOptionPane.ERROR_MESSAGE
 					);
