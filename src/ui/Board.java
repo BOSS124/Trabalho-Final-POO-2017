@@ -331,8 +331,8 @@ public class Board extends JPanel implements Runnable {
 			String result;
 			
 			while((result = (String) JOptionPane.showInputDialog(this,
-				"Select the solution you want to run:",
-				"Options",
+				"Selecione a solução que deseja executar:",
+				"Soluções",
 				JOptionPane.QUESTION_MESSAGE,
 				null,
 				optionsStrings,
